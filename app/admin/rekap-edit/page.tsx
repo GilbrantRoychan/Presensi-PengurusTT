@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { ArrowLeft, Search, Download, Save, RefreshCw } from 'lucide-react'
@@ -216,32 +216,40 @@ export default function AdminRekapEditPage() {
     }
   }
 
-  // Logika Filter Data (Menggunakan savedPresensiMap agar data filter stabil berdasar data tersimpan)
-  const filteredPengurus = pengurusList.filter((g) => {
-    const matchKelompok = selectedKelompok === 'Semua' || g.kelompok === selectedKelompok
-    const matchJK = selectedJK === 'Semua' || g.jenis_kelamin === selectedJK
-    const currentStatus = savedPresensiMap[g.id]?.status || 'Alpa / Belum Presensi'
-    const matchStatus = selectedStatus === 'Semua' || currentStatus === selectedStatus
-    const matchSearch =
-      g.nama_pengurus.toLowerCase().includes(searchQuery.toLowerCase())
+  // Memoized filter and statistics calculation
+  const filteredPengurus = useMemo(() => {
+    return pengurusList.filter((g) => {
+      const matchKelompok = selectedKelompok === 'Semua' || g.kelompok === selectedKelompok
+      const matchJK = selectedJK === 'Semua' || g.jenis_kelamin === selectedJK
+      const currentStatus = savedPresensiMap[g.id]?.status || 'Alpa / Belum Presensi'
+      const matchStatus = selectedStatus === 'Semua' || currentStatus === selectedStatus
+      const matchSearch =
+        g.nama_pengurus.toLowerCase().includes(searchQuery.toLowerCase())
 
-    return matchKelompok && matchJK && matchStatus && matchSearch
-  })
+      return matchKelompok && matchJK && matchStatus && matchSearch
+    })
+  }, [pengurusList, selectedKelompok, selectedJK, selectedStatus, searchQuery, savedPresensiMap])
 
-  // Hitung Statistik Presensi HANYA dari savedPresensiMap (Data Tersimpan)
-  const totalPengurus = filteredPengurus.length
-  let totalHadir = 0
-  let totalIzin = 0
-  let totalAlpa = 0
-
-  filteredPengurus.forEach((g) => {
-    const st = savedPresensiMap[g.id]?.status
-    if (st === 'Hadir') totalHadir++
-    else if (st === 'Izin') totalIzin++
-    else totalAlpa++
-  })
-
-  const persentaseHadir = totalPengurus > 0 ? ((totalHadir / totalPengurus) * 100).toFixed(1) : '0'
+  const { totalPengurus, totalHadir, totalIzin, totalAlpa, persentaseHadir } = useMemo(() => {
+    let hadir = 0
+    let izin = 0
+    let alpa = 0
+    filteredPengurus.forEach((g) => {
+      const st = savedPresensiMap[g.id]?.status
+      if (st === 'Hadir') hadir++
+      else if (st === 'Izin') izin++
+      else alpa++
+    })
+    const total = filteredPengurus.length
+    const persentase = total > 0 ? ((hadir / total) * 100).toFixed(1) : '0'
+    return {
+      totalPengurus: total,
+      totalHadir: hadir,
+      totalIzin: izin,
+      totalAlpa: alpa,
+      persentaseHadir: persentase,
+    }
+  }, [filteredPengurus, savedPresensiMap])
 
   const currentAcaraInfo = acaraList.find((a) => a.id === selectedAcara)
 
@@ -289,7 +297,7 @@ export default function AdminRekapEditPage() {
       <div className="max-w-6xl mx-auto space-y-6">
         <div>
           <Link
-            href="/admin/generus"
+            href="/admin/pengurus"
             className="inline-flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition mb-4"
           >
             <ArrowLeft className="w-4 h-4" /> Kembali ke Panel Admin
