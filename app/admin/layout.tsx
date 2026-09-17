@@ -32,7 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* Baris Atas: Branding & Tombol Logout */}
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2.5">
-              <div className="p-1.5 bg-blue-600/20 text-blue-400 rounded-lg border border-blue-500/30">
+              <div className="p-1.5 bg-[#128243]/20 text-[#25a85c] rounded-lg border border-[#128243]/30">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
@@ -52,7 +52,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     href={item.href}
                     className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition ${
                       isActive
-                        ? 'bg-blue-600 text-white shadow-sm'
+                        ? 'bg-[#128243] text-white shadow-sm'
                         : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                     }`}
                   >
@@ -84,7 +84,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   href={item.href}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition ${
                     isActive
-                      ? 'bg-blue-600 text-white shadow-sm font-semibold'
+                      ? 'bg-[#128243] text-white shadow-sm font-semibold'
                       : 'text-slate-300 bg-slate-800/80 hover:bg-slate-800'
                   }`}
                 >
