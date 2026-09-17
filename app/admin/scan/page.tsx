@@ -192,7 +192,7 @@ export default function AdminScanPage() {
     }
 
     const candidates = getQrCandidates(rawCode)
-    let gen: { id: string; nama: string } | null = null
+    let gen: { id: string; nama_pengurus: string } | null = null
     let lookupError: { message: string } | null = null
 
     for (const candidate of candidates) {
