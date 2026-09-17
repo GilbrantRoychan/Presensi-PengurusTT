@@ -289,7 +289,7 @@ export default function AdminRekapEditPage() {
       <div className="max-w-6xl mx-auto space-y-6">
         <div>
           <Link
-            href="/admin"
+            href="/admin/generus"
             className="inline-flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition mb-4"
           >
             <ArrowLeft className="w-4 h-4" /> Kembali ke Panel Admin
