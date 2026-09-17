@@ -123,30 +123,39 @@ export default function RekapPage() {
     }
   }, [fetchRekapData, selectedAcara])
 
-  const filteredPengurus = pengurusList.filter((pengurus) => {
-    const statusPengurus = presensiMap[pengurus.id]?.status || 'Alpa / Belum Presensi'
-    const matchKelompok = selectedKelompok === 'Semua' || pengurus.kelompok === selectedKelompok
-    const matchJK = selectedJK === 'Semua' || pengurus.jenis_kelamin === selectedJK
-    const matchStatus = selectedStatus === 'Semua' || statusPengurus === selectedStatus
-    const matchSearch =
-      pengurus.nama_pengurus.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredPengurus = useMemo(() => {
+    return pengurusList.filter((pengurus) => {
+      const statusPengurus = presensiMap[pengurus.id]?.status || 'Alpa / Belum Presensi'
+      const matchKelompok = selectedKelompok === 'Semua' || pengurus.kelompok === selectedKelompok
+      const matchJK = selectedJK === 'Semua' || pengurus.jenis_kelamin === selectedJK
+      const matchStatus = selectedStatus === 'Semua' || statusPengurus === selectedStatus
+      const matchSearch =
+        pengurus.nama_pengurus.toLowerCase().includes(searchQuery.toLowerCase())
 
-    return matchKelompok && matchJK && matchStatus && matchSearch
-  })
+      return matchKelompok && matchJK && matchStatus && matchSearch
+    })
+  }, [pengurusList, presensiMap, selectedKelompok, selectedJK, selectedStatus, searchQuery])
 
-  const totalPengurus = filteredPengurus.length
-  let totalHadir = 0
-  let totalIzin = 0
-  let totalAlpa = 0
-
-  filteredPengurus.forEach((pengurus) => {
-    const status = presensiMap[pengurus.id]?.status
-    if (status === 'Hadir') totalHadir += 1
-    else if (status === 'Izin') totalIzin += 1
-    else totalAlpa += 1
-  })
-
-  const persentaseHadir = totalPengurus > 0 ? ((totalHadir / totalPengurus) * 100).toFixed(1) : '0'
+  const { totalPengurus, totalHadir, totalIzin, totalAlpa, persentaseHadir } = useMemo(() => {
+    let hadir = 0
+    let izin = 0
+    let alpa = 0
+    filteredPengurus.forEach((pengurus) => {
+      const status = presensiMap[pengurus.id]?.status
+      if (status === 'Hadir') hadir += 1
+      else if (status === 'Izin') izin += 1
+      else alpa += 1
+    })
+    const total = filteredPengurus.length
+    const persentase = total > 0 ? ((hadir / total) * 100).toFixed(1) : '0'
+    return {
+      totalPengurus: total,
+      totalHadir: hadir,
+      totalIzin: izin,
+      totalAlpa: alpa,
+      persentaseHadir: persentase,
+    }
+  }, [filteredPengurus, presensiMap])
 
   const handleExportExcel = () => {
     if (!selectedAcaraObj) {
