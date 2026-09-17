@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#2563eb',
+  themeColor: '#128243',
   width: 'device-width',
   initialScale: 1,
 }
@@ -28,7 +28,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" className="h-full bg-slate-50">
-      <body className={`${inter.className} h-full antialiased text-slate-900 bg-slate-50 selection:bg-blue-100 selection:text-blue-700`}>
+      <body className={`${inter.className} h-full antialiased text-slate-900 bg-slate-50 selection:bg-emerald-100 selection:text-emerald-800`}>
         <SessionTimeout />
         {children}
       </body>
