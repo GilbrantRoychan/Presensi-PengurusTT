@@ -24,9 +24,19 @@ interface Pengurus {
   nama_pengurus: string
   kelompok: string
   jenis_kelamin: string
+  dapukan?: string[]
   qr_code?: string
   qr_code_id?: string
 }
+
+const DAPUKAN_OPTIONS = [
+  'Kyai',
+  'Wakil Kyai',
+  'KU',
+  'Penerobos kelompok',
+  'Penerobos Desa',
+  'Mubaligh',
+]
 
 // Urutan prioritas kelompok kustom
 const KELOMPOK_ORDER = ['GONJEN 1', 'GONJEN 2', 'KEMBARAN', 'SEMBUNG']
@@ -92,6 +102,7 @@ export default function AdminPengurusPage() {
     nama_pengurus: '',
     kelompok: 'GONJEN 1',
     jenis_kelamin: 'Laki-laki',
+    dapukan: [],
   })
 
   // State File Import
@@ -126,6 +137,7 @@ export default function AdminPengurusPage() {
           nama_pengurus: formData.nama_pengurus,
           kelompok: formData.kelompok,
           jenis_kelamin: formData.jenis_kelamin,
+          dapukan: formData.dapukan,
         })
         .eq('id', editingData.id)
 
@@ -138,6 +150,7 @@ export default function AdminPengurusPage() {
           nama_pengurus: formData.nama_pengurus,
           kelompok: formData.kelompok,
           jenis_kelamin: formData.jenis_kelamin,
+          dapukan: formData.dapukan,
         },
       ])
 
@@ -192,6 +205,7 @@ export default function AdminPengurusPage() {
       'Nama Lengkap': item.nama_pengurus,
       Kelompok: item.kelompok || '-',
       'Jenis Kelamin': item.jenis_kelamin || '-',
+      Dapukan: Array.isArray(item.dapukan) ? item.dapukan.join(', ') : '-',
       'Kode QR / ID': item.qr_code_id || item.qr_code || item.id || '-',
     }))
 
@@ -283,6 +297,7 @@ export default function AdminPengurusPage() {
       nama_pengurus: '',
       kelompok: 'GONJEN 1',
       jenis_kelamin: 'Laki-laki',
+      dapukan: [],
     })
     setIsModalOpen(true)
   }
@@ -293,6 +308,7 @@ export default function AdminPengurusPage() {
       nama_pengurus: item.nama_pengurus,
       kelompok: item.kelompok || 'GONJEN 1',
       jenis_kelamin: item.jenis_kelamin || 'Laki-laki',
+      dapukan: item.dapukan || [],
     })
     setIsModalOpen(true)
   }
@@ -434,6 +450,7 @@ export default function AdminPengurusPage() {
                   <th className="py-3.5 px-4">Nama Lengkap</th>
                   <th className="py-3.5 px-4">Kelompok</th>
                   <th className="py-3.5 px-4">Jenis Kelamin</th>
+                  <th className="py-3.5 px-4">Dapukan</th>
                   <th className="py-3.5 px-4 text-center">Kode QR</th>
                   <th className="py-3.5 px-4 text-center">Aksi</th>
                 </tr>
@@ -441,20 +458,20 @@ export default function AdminPengurusPage() {
               <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-slate-400 font-medium">
+                    <td colSpan={6} className="py-8 text-center text-slate-400 font-medium">
                       Memuat data pengurus...
                     </td>
                   </tr>
                 ) : filteredPengurus.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-slate-400 font-medium">
+                    <td colSpan={6} className="py-8 text-center text-slate-400 font-medium">
                       Data tidak ditemukan.
                     </td>
                   </tr>
                 ) : (
                   filteredPengurus.map((item) => (
                     <tr key={item.id} className="hover:bg-slate-50/80 transition">
-                      <td className="py-3.5 px-4 font-bold text-slate-900">                      {item.nama_pengurus}</td>
+                      <td className="py-3.5 px-4 font-bold text-slate-900">{item.nama_pengurus}</td>
                       <td className="py-3.5 px-4 text-slate-600 font-medium">
                         <span className="px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200/60 rounded-md text-xs">
                           {item.kelompok || '-'}
@@ -471,7 +488,19 @@ export default function AdminPengurusPage() {
                           {item.jenis_kelamin}
                         </span>
                       </td>
-
+                      <td className="py-3.5 px-4">
+                        <div className="flex flex-wrap gap-1">
+                          {Array.isArray(item.dapukan) && item.dapukan.length > 0 ? (
+                            item.dapukan.map((d) => (
+                              <span key={d} className="px-2 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-md text-[10px] font-semibold">
+                                {d}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-slate-400 text-xs">-</span>
+                          )}
+                        </div>
+                      </td>
                       <td className="py-3.5 px-4 text-center font-mono text-slate-400 text-xs">
                         {item.qr_code_id || item.qr_code || item.id?.slice(0, 6).toUpperCase() || '-'}
                       </td>
@@ -549,6 +578,33 @@ export default function AdminPengurusPage() {
                   <option value="Laki-laki">Laki-laki</option>
                   <option value="Perempuan">Perempuan</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-2">Dapukan (Bisa pilih lebih dari satu)</label>
+                <div className="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  {DAPUKAN_OPTIONS.map((dapukanName) => {
+                    const isSelected = formData.dapukan?.includes(dapukanName)
+                    return (
+                      <label key={dapukanName} className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            const currentDapukan = formData.dapukan || []
+                            if (e.target.checked) {
+                              setFormData({ ...formData, dapukan: [...currentDapukan, dapukanName] })
+                            } else {
+                              setFormData({ ...formData, dapukan: currentDapukan.filter((d) => d !== dapukanName) })
+                            }
+                          }}
+                          className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span>{dapukanName}</span>
+                      </label>
+                    )
+                  })}
+                </div>
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button
