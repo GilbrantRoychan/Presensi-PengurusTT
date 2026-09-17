@@ -97,7 +97,7 @@ export default function QRCodePage() {
       setEventSettingsLoading(true)
       setEventSettingsError('')
       const [{ data: committee, error: committeeError }, { data: designRows, error: designError }] = await Promise.all([
-        supabase.from('acara_panitia').select('id, generus_id, nama_manual, jabatan').eq('acara_id', selectedAcaraId),
+        supabase.from('acara_panitia').select('id, pengurus_id, nama_manual, jabatan').eq('acara_id', selectedAcaraId),
         supabase.from('acara_design').select('role, storage_path').eq('acara_id', selectedAcaraId)
       ])
       if (committeeError || designError) {
@@ -112,10 +112,10 @@ export default function QRCodePage() {
       const nextPanitiaJabatan = new Map<string, string>()
       const nextManualPanitia: ManualPanitia[] = []
       for (const item of committee || []) {
-        if (item.generus_id && item.jabatan) {
-          nextPanitiaJabatan.set(item.generus_id, item.jabatan)
+        if (item.pengurus_id && item.jabatan) {
+          nextPanitiaJabatan.set(item.pengurus_id, item.jabatan)
         }
-        if (!item.generus_id && item.id && item.nama_manual && item.jabatan) {
+        if (!item.pengurus_id && item.id && item.nama_manual && item.jabatan) {
           nextPanitiaJabatan.set(item.id, item.jabatan)
           nextManualPanitia.push({
             id: item.id,
