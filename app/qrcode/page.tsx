@@ -69,8 +69,6 @@ export default function QRCodePage() {
     }
 
     loadPengurus()
-
-    loadGenerus()
   }, [])
 
   useEffect(() => {
@@ -207,7 +205,7 @@ export default function QRCodePage() {
   }
 
   const downloadKelompokZip = async (kelompokName: string) => {
-    const targetItems = groupedGenerus[kelompokName] || []
+    const targetItems = groupedPengurus[kelompokName] || []
     if (targetItems.length === 0) return alert('Tidak ada data QR Code untuk diunduh!')
 
     setDownloadingZip(true)
