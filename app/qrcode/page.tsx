@@ -105,7 +105,7 @@ export default function QRCodePage() {
         setManualPanitia([])
         setPanitiaDesign(null)
         setParticipantDesign(null)
-        setEventSettingsError('Pengaturan acara belum tersedia. Jalankan migration Supabase terlebih dahulu.')
+        setEventSettingsError('Admin belum menentukan panitia atau desain khusus untuk acara ini.')
         setEventSettingsLoading(false)
         return
       }
@@ -307,7 +307,7 @@ export default function QRCodePage() {
               <option key={acara.id} value={acara.id}>{acara.nama_acara} - {acara.tanggal}</option>
             ))}
           </select>
-          {eventSettingsError && <p className="text-xs text-amber-600 mt-2">{eventSettingsError}</p>}
+          {eventSettingsError && <p className="text-xs text-slate-500 mt-2">💡 {eventSettingsError}</p>}
         </div>
 
         <div className="space-y-4">
