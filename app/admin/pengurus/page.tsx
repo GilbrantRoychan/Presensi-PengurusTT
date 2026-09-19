@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { cardReader } from '@/lib/cardReader'
 import * as XLSX from 'xlsx'
 import {
   Users,
@@ -16,6 +17,9 @@ import {
   Filter,
   Download,
   GraduationCap,
+  CreditCard,
+  CheckCircle2,
+  AlertCircle,
 } from 'lucide-react'
 
 // Interface Data Pengurus
@@ -27,6 +31,7 @@ interface Pengurus {
   dapukan?: string[]
   qr_code?: string
   qr_code_id?: string
+  card_id?: string
 }
 
 const DAPUKAN_OPTIONS = [
@@ -103,15 +108,28 @@ export default function AdminPengurusPage() {
     kelompok: 'GONJEN 1',
     jenis_kelamin: 'Laki-laki',
     dapukan: [],
+    card_id: '',
   })
+
+  // State Card Reader Scanning & Toast Notification
+  const [isScanningCard, setIsScanningCard] = useState(false)
+  const [readerReady, setReaderReady] = useState(false)
+  const [toast, setToast] = useState<{ show: boolean; text: string; type: 'success' | 'error' }>({
+    show: false,
+    text: '',
+    type: 'success',
+  })
+
+  const showToast = (text: string, type: 'success' | 'error') => {
+    setToast({ show: true, text, type })
+    setTimeout(() => {
+      setToast({ show: false, text: '', type: 'success' })
+    }, 3200)
+  }
 
   // State File Import
   const [importFile, setImportFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
-
-  useEffect(() => {
-    fetchPengurus()
-  }, [])
 
   // 1. Fetch Data dari Supabase & Urutkan secara Kustom
   const fetchPengurus = async () => {
@@ -122,6 +140,29 @@ export default function AdminPengurusPage() {
       setPengurusList(sortedData)
     }
     setLoading(false)
+  }
+
+  useEffect(() => {
+    fetchPengurus()
+    setReaderReady(cardReader.getIsReady())
+  }, [])
+
+  // Handle Scan Card Async for Form Input
+  const handleScanCardAction = async () => {
+    if (isScanningCard) return
+    setIsScanningCard(true)
+    showToast('Tempelkan kartu RFID pada card reader...', 'success')
+
+    try {
+      const scannedCardId = await cardReader.waitForTap(30000)
+      setFormData((prev) => ({ ...prev, card_id: scannedCardId }))
+      showToast(`ID dari card berhasil terbaca: ${scannedCardId}`, 'success')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Gagal membaca kartu.'
+      showToast(message, 'error')
+    } finally {
+      setIsScanningCard(false)
+    }
   }
 
   // 2. Fungsi Tambah & Edit Manual
@@ -138,6 +179,7 @@ export default function AdminPengurusPage() {
           kelompok: formData.kelompok,
           jenis_kelamin: formData.jenis_kelamin,
           dapukan: formData.dapukan,
+          card_id: formData.card_id?.trim() || null,
         })
         .eq('id', editingData.id)
 
@@ -151,6 +193,7 @@ export default function AdminPengurusPage() {
           kelompok: formData.kelompok,
           jenis_kelamin: formData.jenis_kelamin,
           dapukan: formData.dapukan,
+          card_id: formData.card_id?.trim() || null,
         },
       ])
 
@@ -309,6 +352,7 @@ export default function AdminPengurusPage() {
       kelompok: item.kelompok || 'GONJEN 1',
       jenis_kelamin: item.jenis_kelamin || 'Laki-laki',
       dapukan: item.dapukan || [],
+      card_id: item.card_id || '',
     })
     setIsModalOpen(true)
   }
@@ -342,7 +386,29 @@ export default function AdminPengurusPage() {
   ).length
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-16">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-16 relative">
+      {/* Toast Popup Notification Floating */}
+      {toast.show && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-md transition-all duration-300">
+          <div
+            className={`p-4 rounded-2xl shadow-xl border flex items-center justify-between gap-3 text-white ${
+              toast.type === 'success' ? 'bg-emerald-600 border-emerald-500' : 'bg-red-600 border-red-500'
+            }`}
+          >
+            <div className="flex items-center gap-2.5 text-xs sm:text-sm font-semibold">
+              {toast.type === 'success' ? (
+                <CheckCircle2 className="w-5 h-5 shrink-0" />
+              ) : (
+                <AlertCircle className="w-5 h-5 shrink-0" />
+              )}
+              <span>{toast.text}</span>
+            </div>
+            <button onClick={() => setToast({ ...toast, show: false })} className="p-1 hover:bg-white/20 rounded-lg">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
         {/* Header Section & Action Bar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -453,7 +519,7 @@ export default function AdminPengurusPage() {
                   <th className="py-3.5 px-4">Kelompok</th>
                   <th className="py-3.5 px-4">Jenis Kelamin</th>
                   <th className="py-3.5 px-4">Dapukan</th>
-                  <th className="py-3.5 px-4 text-center">Kode QR</th>
+                  <th className="py-3.5 px-4 text-center">Card ID / RFID</th>
                   <th className="py-3.5 px-4 text-center">Aksi</th>
                 </tr>
               </thead>
@@ -503,8 +569,14 @@ export default function AdminPengurusPage() {
                           )}
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 text-center font-mono text-slate-400 text-xs">
-                        {item.qr_code_id || item.qr_code || item.id?.slice(0, 6).toUpperCase() || '-'}
+                      <td className="py-3.5 px-4 text-center font-mono text-xs">
+                        {item.card_id ? (
+                          <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg font-bold">
+                            {item.card_id}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
@@ -556,6 +628,40 @@ export default function AdminPengurusPage() {
                   placeholder="Masukkan nama lengkap..."
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
                 />
+              </div>
+
+              {/* Card ID with Scan Button */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                  <span>Card ID / RFID</span>
+                  <span className="text-[11px] font-normal text-emerald-600 flex items-center gap-1">
+                    <span className={`w-2 h-2 rounded-full ${readerReady ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+                    Reader {readerReady ? 'Ready' : 'Standby'}
+                  </span>
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={formData.card_id || ''}
+                    onChange={(e) => setFormData({ ...formData, card_id: e.target.value })}
+                    placeholder="Scan atau ketik Card ID..."
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-mono text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleScanCardAction}
+                    disabled={isScanningCard}
+                    className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white rounded-xl font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer text-xs"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    {isScanningCard ? 'Menunggu...' : 'Scan Card'}
+                  </button>
+                </div>
+                {isScanningCard && (
+                  <p className="text-[11px] text-blue-600 mt-1 animate-pulse font-medium">
+                    Silakan tap kartu pada Card Reader sekarang...
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Kelompok</label>
