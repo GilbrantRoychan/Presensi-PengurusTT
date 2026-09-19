@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { cardReader } from '@/lib/cardReader'
 import { Html5Qrcode } from 'html5-qrcode'
-import { Camera, UserCheck, UserPlus, Calendar, CheckCircle2, AlertCircle, X, Filter, Image as ImageIcon } from 'lucide-react'
+import { Camera, UserCheck, UserPlus, Calendar, CheckCircle2, AlertCircle, X, Filter, Image as ImageIcon, CreditCard } from 'lucide-react'
 
 const supabase = createClient()
 
@@ -20,6 +21,7 @@ interface Pengurus {
   kelompok: string
   jenis_kelamin: 'Laki-laki' | 'Perempuan'
   qr_code_id?: string
+  card_id?: string
 }
 
 export default function AdminScanPage() {
@@ -30,6 +32,7 @@ export default function AdminScanPage() {
   const [cameraError, setCameraError] = useState('')
   const [scanningImage, setScanningImage] = useState(false)
   const [requestingCamera, setRequestingCamera] = useState(false)
+  const [lastScannedCard, setLastScannedCard] = useState<string>('')
   
   // State Input Manual Data Ada
   const [selectedKelompokFilter, setSelectedKelompokFilter] = useState<string>('')
@@ -52,7 +55,7 @@ export default function AdminScanPage() {
   const isProcessing = useRef(false)
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const startScannerRef = useRef<(() => Promise<void>) | null>(null)
-  const processPresensiRef = useRef<((rawCode: string) => Promise<void>) | null>(null)
+  const processPresensiRef = useRef<((rawCode: string, metode?: 'QR Scan' | 'Card Scan') => Promise<void>) | null>(null)
 
   useEffect(() => {
     const loadData = async () => {
@@ -69,6 +72,22 @@ export default function AdminScanPage() {
       setToast({ show: false, text: '', type: 'success' })
     }, 3200)
   }
+
+  // Card Reader Global Listener useEffect
+  useEffect(() => {
+    if (!selectedAcara) return
+
+    const handleCardScanned = async (cardId: string) => {
+      setLastScannedCard(cardId)
+      await processPresensiRef.current?.(cardId, 'Card Scan')
+    }
+
+    cardReader.startListening(handleCardScanned)
+
+    return () => {
+      cardReader.stopListening()
+    }
+  }, [selectedAcara])
 
   // Scanner Kamera
   useEffect(() => {
@@ -180,8 +199,8 @@ export default function AdminScanPage() {
     return Array.from(candidates).filter(Boolean)
   }
 
-  // Logika Pemrosesan QR Code
-  async function handleProcessPresensiByQR(rawCode: string) {
+  // Logika Pemrosesan QR Code atau Card Scan
+  async function handleProcessPresensi(rawCode: string, metodeScan: 'QR Scan' | 'Card Scan' = 'QR Scan') {
     if (isProcessing.current) return
     isProcessing.current = true
 
@@ -191,8 +210,28 @@ export default function AdminScanPage() {
       return
     }
 
-    const candidates = getQrCandidates(rawCode)
     let gen: { id: string; nama_pengurus: string } | null = null
+
+    if (metodeScan === 'Card Scan') {
+      const cleanCardId = rawCode.replace(/[\u200B-\u200D\uFEFF]/g, '').trim()
+      const { data } = await supabase
+        .from('pengurus')
+        .select('id, nama_pengurus')
+        .eq('card_id', cleanCardId)
+        .maybeSingle()
+
+      if (data) gen = data
+      if (!gen) {
+        showToast(`Card ID (${cleanCardId}) tidak terdaftar pada pengurus manapun!`, 'error')
+        setTimeout(() => { isProcessing.current = false }, 2500)
+        return
+      }
+      await submitPresensi(gen.id, gen.nama_pengurus, 'Card Scan')
+      setTimeout(() => { isProcessing.current = false }, 2500)
+      return
+    }
+
+    const candidates = getQrCandidates(rawCode)
     let lookupError: { message: string } | null = null
 
     for (const candidate of candidates) {
@@ -256,7 +295,7 @@ export default function AdminScanPage() {
     }, 2500)
   }
 
-  processPresensiRef.current = handleProcessPresensiByQR
+  processPresensiRef.current = handleProcessPresensi
 
   const handleImageScan = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const imageFile = event.target.files?.[0]
@@ -270,7 +309,7 @@ export default function AdminScanPage() {
       const scanner = scannerRef.current
       if (scanner.isScanning) await scanner.stop()
       const decodedText = await scanner.scanFile(imageFile, true)
-      await handleProcessPresensiByQR(decodedText)
+      await handleProcessPresensi(decodedText, 'QR Scan')
     } catch (error) {
       const message = error instanceof Error ? error.message : 'QR Code tidak ditemukan pada gambar.'
       setCameraError(`Gagal membaca gambar: ${message}`)
@@ -310,7 +349,7 @@ export default function AdminScanPage() {
   }
 
   // Submit Presensi
-  async function submitPresensi(generusId: string, nama: string, metode: 'QR Scan' | 'Manual Admin') {
+  async function submitPresensi(generusId: string, nama: string, metode: 'QR Scan' | 'Card Scan' | 'Manual Admin') {
     const { data: existing } = await supabase
       .from('presensi')
       .select('id')
@@ -423,12 +462,15 @@ export default function AdminScanPage() {
       {/* Layout Grid 2 Kolom */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        {/* Kolom A: Kamera QR */}
+        {/* Kolom A: Kamera QR & Card Reader Scanner */}
         <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 flex flex-col items-center">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-gray-800 mb-4">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-gray-800 mb-2">
             <Camera className="w-5 h-5 text-blue-600" />
-            Kolom A: Pemindai Kamera QR Code
+            Kolom A: Pemindai QR & Card Reader
           </h2>
+          <p className="text-xs text-emerald-600 font-semibold mb-4 flex items-center gap-1.5 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+            <CreditCard className="w-3.5 h-3.5" /> Card Reader RFID Aktif (Auto-Listen)
+          </p>
           {!selectedAcara ? (
             <div className="h-64 flex items-center justify-center text-gray-400 text-center text-sm">
               Pilih acara di atas untuk mengaktifkan scanner kamera.
