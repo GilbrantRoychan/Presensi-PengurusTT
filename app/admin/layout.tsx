@@ -18,7 +18,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { name: 'Scan / Manual', href: '/admin/scan', icon: QrCode },
-    { name: 'Data Pengurus', href: '/admin/generus', icon: Users },
+    { name: 'Data Pengurus', href: '/admin/pengurus', icon: Users },
     { name: 'Data Acara', href: '/admin/acara', icon: Calendar },
     { name: 'Rekap Edit', href: '/admin/rekap-edit', icon: ClipboardList },
   ]
