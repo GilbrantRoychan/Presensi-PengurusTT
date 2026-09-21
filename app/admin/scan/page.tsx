@@ -33,6 +33,7 @@ export default function AdminScanPage() {
   const [scanningImage, setScanningImage] = useState(false)
   const [requestingCamera, setRequestingCamera] = useState(false)
   const [lastScannedCard, setLastScannedCard] = useState<string>('')
+  const [isWaitingCardTap, setIsWaitingCardTap] = useState(false)
   
   // State Input Manual Data Ada
   const [selectedKelompokFilter, setSelectedKelompokFilter] = useState<string>('')
@@ -73,12 +74,13 @@ export default function AdminScanPage() {
     }, 3200)
   }
 
-  // Card Reader Global Listener useEffect
+  // Card Reader Listener useEffect
   useEffect(() => {
     if (!selectedAcara) return
 
     const handleCardScanned = async (cardId: string) => {
       setLastScannedCard(cardId)
+      setIsWaitingCardTap(false)
       await processPresensiRef.current?.(cardId, 'Card Scan')
     }
 
@@ -88,6 +90,14 @@ export default function AdminScanPage() {
       cardReader.stopListening()
     }
   }, [selectedAcara])
+
+  const handleStartCardScan = () => {
+    if (!selectedAcara) {
+      showToast('Pilih acara terlebih dahulu!', 'error')
+      return
+    }
+    setIsWaitingCardTap(true)
+  }
 
   // Scanner Kamera
   useEffect(() => {
@@ -469,8 +479,28 @@ export default function AdminScanPage() {
             Kolom A: Pemindai QR & Card Reader
           </h2>
           <p className="text-xs text-emerald-600 font-semibold mb-4 flex items-center gap-1.5 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-            <CreditCard className="w-3.5 h-3.5" /> Card Reader RFID Aktif (Auto-Listen)
+            <CreditCard className="w-3.5 h-3.5" /> Card Reader RFID Ready
           </p>
+
+          {/* Indicator Mode Menunggu Tap Kartu */}
+          {isWaitingCardTap && (
+            <div className="w-full mb-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 flex flex-col items-center gap-2 animate-pulse">
+              <div className="flex items-center gap-2 font-bold text-sm">
+                <CreditCard className="w-5 h-5 text-amber-600 animate-bounce" />
+                Menunggu Kartu ID Di-tap / Discan...
+              </div>
+              <p className="text-xs text-amber-700 text-center">
+                Silakan tempelkan kartu RFID ke alat pembaca card reader.
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsWaitingCardTap(false)}
+                className="mt-1 text-xs underline font-semibold text-amber-900 hover:text-amber-700 cursor-pointer"
+              >
+                Batal Menunggu
+              </button>
+            </div>
+          )}
           {!selectedAcara ? (
             <div className="h-64 flex items-center justify-center text-gray-400 text-center text-sm">
               Pilih acara di atas untuk mengaktifkan scanner kamera.
@@ -487,7 +517,17 @@ export default function AdminScanPage() {
                 <Camera className="h-4 w-4" />
                 {requestingCamera ? 'Meminta akses kamera...' : 'Izinkan Akses Kamera'}
               </button>
-              <label className="mt-4 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100">
+              <button
+                type="button"
+                onClick={handleStartCardScan}
+                disabled={isWaitingCardTap}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50 cursor-pointer"
+              >
+                <CreditCard className="h-4 w-4" />
+                {isWaitingCardTap ? 'Menunggu Kartu...' : 'Mulai Scan Card ID (RFID)'}
+              </button>
+
+              <label className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100">
                 <ImageIcon className="h-4 w-4" />
                 {scanningImage ? 'Membaca gambar...' : 'Scan QR dari Gambar'}
                 <input
