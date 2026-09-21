@@ -48,7 +48,7 @@ export default function AdminScanPage() {
   const [kelasBaru, setKelasBaru] = useState('Pra Remaja')
 
   // State Toast Notification Floating (Popup)
-  const [toast, setToast] = useState<{ show: boolean; text: string; type: 'success' | 'error' }>({
+  const [toast, setToast] = useState<{ show: boolean; text: string; type: 'success' | 'error' | 'warning' }>({
     show: false,
     text: '',
     type: 'success'
