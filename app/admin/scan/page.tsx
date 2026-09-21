@@ -80,7 +80,7 @@ export default function AdminScanPage() {
 
     const handleCardScanned = async (cardId: string) => {
       setLastScannedCard(cardId)
-      setIsWaitingCardTap(false)
+      // Tetap pertahankan mode standby/waiting agar bisa scan kartu berikutnya secara berturut-turut
       await processPresensiRef.current?.(cardId, 'Card Scan')
     }
 
