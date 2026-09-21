@@ -34,6 +34,8 @@ export default function AdminScanPage() {
   const [requestingCamera, setRequestingCamera] = useState(false)
   const [lastScannedCard, setLastScannedCard] = useState<string>('')
   const [isWaitingCardTap, setIsWaitingCardTap] = useState(false)
+  const isWaitingCardTapRef = useRef(false)
+  isWaitingCardTapRef.current = isWaitingCardTap
   
   // State Input Manual Data Ada
   const [selectedKelompokFilter, setSelectedKelompokFilter] = useState<string>('')
@@ -67,7 +69,7 @@ export default function AdminScanPage() {
   }, [])
 
   // Fungsi Tampil Toast Notification Singkat
-  const showToast = (text: string, type: 'success' | 'error') => {
+  const showToast = (text: string, type: 'success' | 'error' | 'warning') => {
     setToast({ show: true, text, type })
     setTimeout(() => {
       setToast({ show: false, text: '', type: 'success' })
@@ -80,7 +82,13 @@ export default function AdminScanPage() {
 
     const handleCardScanned = async (cardId: string) => {
       setLastScannedCard(cardId)
-      // Tetap pertahankan mode standby/waiting agar bisa scan kartu berikutnya secara berturut-turut
+
+      // Jika mode tunggu scan card belum diaktifkan (user belum klik tombol mulai scan card)
+      if (!isWaitingCardTapRef.current) {
+        showToast('Mode scan card belum diaktifkan! Silakan klik tombol "Mulai Scan Card ID (RFID)" terlebih dahulu.', 'warning')
+        return
+      }
+
       await processPresensiRef.current?.(cardId, 'Card Scan')
     }
 
@@ -431,12 +439,18 @@ export default function AdminScanPage() {
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-md transition-all duration-300">
           <div
             className={`p-4 rounded-2xl shadow-xl border flex items-center justify-between gap-3 text-white ${
-              toast.type === 'success' ? 'bg-emerald-600 border-emerald-500' : 'bg-red-600 border-red-500'
+              toast.type === 'success'
+                ? 'bg-emerald-600 border-emerald-500'
+                : toast.type === 'warning'
+                ? 'bg-amber-500 border-amber-400 text-slate-900 font-medium'
+                : 'bg-red-600 border-red-500'
             }`}
           >
             <div className="flex items-center gap-2.5 text-xs sm:text-sm font-semibold">
               {toast.type === 'success' ? (
                 <CheckCircle2 className="w-5 h-5 shrink-0" />
+              ) : toast.type === 'warning' ? (
+                <AlertCircle className="w-5 h-5 shrink-0 text-slate-900" />
               ) : (
                 <AlertCircle className="w-5 h-5 shrink-0" />
               )}
