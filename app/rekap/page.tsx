@@ -218,6 +218,38 @@ export default function RekapPage() {
               print-color-adjust: exact !important;
             }
 
+            .dark {
+              color-scheme: light !important;
+            }
+
+            .dark .bg-\[\#090d16\],
+            .dark .bg-slate-900,
+            .dark .bg-slate-800 {
+              background-color: white !important;
+              color: black !important;
+            }
+
+            .dark .text-slate-100,
+            .dark .text-slate-300,
+            .dark .text-slate-400,
+            .dark .text-white,
+            .dark .text-emerald-400,
+            .dark .text-amber-400 {
+              color: black !important;
+            }
+
+            .dark .border-slate-800,
+            .dark .border-slate-700,
+            .dark .border-emerald-800\/60,
+            .dark .border-amber-800\/60 {
+              border-color: #d1d5db !important;
+            }
+
+            .dark .bg-emerald-950\/40,
+            .dark .bg-amber-950\/40 {
+              background-color: transparent !important;
+            }
+
             body * {
               visibility: hidden;
             }
@@ -349,6 +381,8 @@ export default function RekapPage() {
 
         {/* Area Print & Content */}
         <div id="print-area" className="space-y-4">
+
+
           {selectedAcaraObj && (
             <div className="hidden print:block mb-4">
               <div className="border-t-2 border-b-2 border-gray-800 py-3 mb-4 text-center">

@@ -12,7 +12,7 @@ export default function HomePage() {
             <ShieldCheck className="w-5 h-5" />
           </div>
           <span className="text-xs sm:text-sm font-bold tracking-wide uppercase text-slate-700 dark:text-slate-300">
-            Generus Tamantirto
+            PENGURUS TAMANTIRTO
           </span>
         </div>
         <ThemeToggle />

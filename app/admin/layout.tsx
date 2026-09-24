@@ -37,7 +37,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="font-bold text-sm sm:text-base tracking-wide text-white">GENERUS TAMANTIRTO</h1>
+                <h1 className="font-bold text-sm sm:text-base tracking-wide text-white">PENGURUS TAMANTIRTO</h1>
                 <p className="text-[10px] text-slate-400 tracking-wider uppercase font-semibold">Panel Admin</p>
               </div>
             </Link>
@@ -109,7 +109,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Footer */}
       <footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-5 text-center text-xs text-slate-500 dark:text-slate-400 font-medium">
-        Generus Tamantirto © 2026
+        PENGURUS TAMANTIRTO © 2026
       </footer>
     </div>
   )

@@ -2,7 +2,7 @@
 
 ## 1. Deskripsi Web
 
-Proyek ini adalah aplikasi web presensi digital untuk komunitas Generus Tamantirto. Aplikasi ini dibuat dengan Next.js dan Supabase untuk membantu proses:
+Proyek ini adalah aplikasi web presensi digital untuk komunitas PENGURUS TAMANTIRTO. Aplikasi ini dibuat dengan Next.js dan Supabase untuk membantu proses:
 
 - Manajemen data generus
 - Pembuatan acara atau kegiatan

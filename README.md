@@ -1,6 +1,6 @@
 # Presensi Generus
 
-Aplikasi web presensi digital untuk komunitas Generus Tamantirto berbasis Next.js dan Supabase.
+Aplikasi web presensi digital untuk komunitas PENGURUS TAMANTIRTO berbasis Next.js dan Supabase.
 
 ## Ringkasan
 
