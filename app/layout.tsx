@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   description: 'Sistem Pengelolaan Kehadiran & Data Generus Desa Tamantirto',
   manifest: '/manifest.json',
   icons: {
-    icon: '/icon.svg',
-    apple: '/icon.svg',
+    icon: '/icon.png',
+    apple: '/icon.png',
   },
 }
 
