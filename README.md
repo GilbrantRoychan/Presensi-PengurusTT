@@ -1,4 +1,4 @@
-# Presensi Generus
+# Presensi Pengurus Tamantirto
 
 Aplikasi web presensi digital untuk komunitas PENGURUS TAMANTIRTO berbasis Next.js dan Supabase.
 
@@ -6,11 +6,12 @@ Aplikasi web presensi digital untuk komunitas PENGURUS TAMANTIRTO berbasis Next.
 
 Proyek ini mencakup:
 
-- Manajemen data generus
+- Manajemen data pengurus
 - Manajemen acara dan panitia
-- Presensi QR Code
-- Rekapitulasi kehadiran
+- Presensi QR Code dan Scan Kamera
+- Rekapitulasi kehadiran dengan Export Excel & Cetak PDF
 - Pembuatan kartu QR / co-card dengan desain per acara
+- Dukungan Dark Mode dan Session Timeout
 
 ## Dokumentasi Lengkap
 
@@ -18,11 +19,11 @@ Dokumentasi detail proyek tersedia di [DOCUMENTASI_PROYEK.md](DOCUMENTASI_PROYEK
 
 ## Fitur Utama
 
-- Data generus: tambah, edit, hapus, import Excel/CSV, export Excel
-- Data acara: tambah, edit, hapus, pengaturan panitia dan desain acara
+- Data Pengurus: tambah, edit, hapus, import Excel/CSV, export Excel
+- Data Acara: tambah, edit, hapus, pengaturan panitia dan desain acara
 - QR Code: generate kartu peserta/panitia, download PNG/JPG, eksport ZIP per kelompok
-- Presensi: scan QR, presensi manual, status hadir/izin/alpa
-- Rekap: lihat rekap publik dan export ke Excel
+- Presensi: scan QR kamera, scan RFID/Card ID, presensi manual, status hadir/izin/alpa
+- Rekapitulasi: rekap publik, export ke Excel, dan cetak laporan PDF
 
 ## Setup Cepat
 

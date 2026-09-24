@@ -61,6 +61,7 @@ Web ini memiliki dua sisi utama:
 ### E. Presensi
 
 - Scan QR Code menggunakan kamera browser
+- Scan RFID / Card ID pengurus
 - Presensi manual melalui admin dashboard
 - Menandai peserta dengan status `Hadir`, `Izin`, atau `Alpa / Belum Presensi`
 - Menyimpan alasan izin bila diperlukan
