@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Presensi Pengurus Tamantirto',
-  description: 'Sistem Pengelolaan Kehadiran & Data Generus',
+  description: 'Sistem Pengelolaan Kehadiran & Data Generus Desa Tamantirto',
   manifest: '/manifest.json',
   icons: {
     icon: '/icon.svg',
@@ -27,8 +27,26 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="id" className="h-full bg-slate-50">
-      <body className={`${inter.className} h-full antialiased text-slate-900 bg-slate-50 selection:bg-emerald-100 selection:text-emerald-800`}>
+    <html lang="id" className="h-full scroll-smooth" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var theme = localStorage.getItem('theme');
+                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
+      <body
+        className={`${inter.className} min-h-screen antialiased text-slate-900 bg-slate-100 dark:bg-[#090d16] dark:text-slate-100 selection:bg-emerald-100 selection:text-emerald-800`}
+      >
         <SessionTimeout />
         {children}
       </body>
