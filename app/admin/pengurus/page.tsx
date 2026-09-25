@@ -525,12 +525,12 @@ export default function AdminPengurusPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-100/80 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                <th className="py-3.5 px-4">Nama Lengkap</th>
-                <th className="py-3.5 px-4">Kelompok</th>
-                <th className="py-3.5 px-4">Jenis Kelamin</th>
-                <th className="py-3.5 px-4">Dapukan</th>
-                <th className="py-3.5 px-4 text-center">Card ID / RFID</th>
-                <th className="py-3.5 px-4 text-center">Aksi</th>
+                <th className="py-3.5 px-3 sm:px-4">Nama Lengkap</th>
+                <th className="py-3.5 px-3 sm:px-4 whitespace-nowrap">Kelompok</th>
+                <th className="py-3.5 px-3 sm:px-4 whitespace-nowrap">Jenis Kelamin</th>
+                <th className="py-3.5 px-3 sm:px-4">Dapukan</th>
+                <th className="py-3.5 px-3 sm:px-4 text-center whitespace-nowrap">Card ID / RFID</th>
+                <th className="py-3.5 px-3 sm:px-4 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs sm:text-sm">
@@ -549,14 +549,14 @@ export default function AdminPengurusPage() {
               ) : (
                 paginatedPengurus.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">{item.nama_pengurus}</td>
-                    <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-medium">
-                      <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-semibold">
+                    <td className="py-3.5 px-3 sm:px-4 font-bold text-slate-900 dark:text-white max-w-[150px] sm:max-w-none truncate">{item.nama_pengurus}</td>
+                    <td className="py-3.5 px-3 sm:px-4 text-slate-600 dark:text-slate-300 font-medium whitespace-nowrap">
+                      <span className="inline-block max-w-[110px] sm:max-w-none truncate px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-semibold align-middle">
                         {item.kelompok || '-'}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4">
-                      <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    <td className="py-3.5 px-3 sm:px-4 whitespace-nowrap">
+                      <span className="inline-block max-w-[90px] sm:max-w-none truncate px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 align-middle">
                         {item.jenis_kelamin}
                       </span>
                     </td>
@@ -625,7 +625,6 @@ export default function AdminPengurusPage() {
                 Sebelumnya
               </button>
               <div className="flex items-center gap-1 font-bold text-slate-700 dark:text-slate-200">
-                <span>Hal</span>
                 <select
                   value={currentPage}
                   onChange={(e) => setCurrentPage(Number(e.target.value))}
