@@ -102,6 +102,10 @@ export default function AdminPengurusPage() {
   const [selectedKelompok, setSelectedKelompok] = useState('Semua Kelompok')
   const [selectedStatusDapukan, setSelectedStatusDapukan] = useState('Semua Status Dapukan')
 
+  // State Pagination
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
+
   // State Modal CRUD
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isImportModalOpen, setIsImportModalOpen] = useState(false)
