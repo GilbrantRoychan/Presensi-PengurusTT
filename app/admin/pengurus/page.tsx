@@ -28,6 +28,7 @@ interface Pengurus {
   kelompok: string
   jenis_kelamin: string
   dapukan?: string[]
+  status_dapukan?: string[]
   qr_code?: string
   qr_code_id?: string
   card_id?: string
@@ -41,6 +42,8 @@ const DAPUKAN_OPTIONS = [
   'Penerobos Desa',
   'Mubaligh',
 ]
+
+const STATUS_DAPUKAN_OPTIONS = ['Kelompok', 'Desa']
 
 // Urutan prioritas kelompok kustom
 const KELOMPOK_ORDER = ['GONJEN 1', 'GONJEN 2', 'KEMBARAN', 'SEMBUNG']
@@ -97,6 +100,7 @@ export default function AdminPengurusPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedKelompok, setSelectedKelompok] = useState('Semua Kelompok')
+  const [selectedStatusDapukan, setSelectedStatusDapukan] = useState('Semua Status Dapukan')
 
   // State Modal CRUD
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -107,6 +111,7 @@ export default function AdminPengurusPage() {
     kelompok: 'GONJEN 1',
     jenis_kelamin: 'Laki-laki',
     dapukan: [],
+    status_dapukan: [],
     card_id: '',
   })
 
@@ -178,6 +183,7 @@ export default function AdminPengurusPage() {
           kelompok: formData.kelompok,
           jenis_kelamin: formData.jenis_kelamin,
           dapukan: formData.dapukan,
+          status_dapukan: formData.status_dapukan,
           card_id: formData.card_id?.trim() || null,
         })
         .eq('id', editingData.id)
@@ -192,6 +198,7 @@ export default function AdminPengurusPage() {
           kelompok: formData.kelompok,
           jenis_kelamin: formData.jenis_kelamin,
           dapukan: formData.dapukan,
+          status_dapukan: formData.status_dapukan,
           card_id: formData.card_id?.trim() || null,
         },
       ])
@@ -248,6 +255,7 @@ export default function AdminPengurusPage() {
       Kelompok: item.kelompok || '-',
       'Jenis Kelamin': item.jenis_kelamin || '-',
       Dapukan: Array.isArray(item.dapukan) ? item.dapukan.join(', ') : '-',
+      'Status Dapukan': Array.isArray(item.status_dapukan) ? item.status_dapukan.join(', ') : '-',
       'Card ID / RFID': item.card_id || '-',
     }))
 
@@ -326,6 +334,7 @@ export default function AdminPengurusPage() {
       kelompok: 'GONJEN 1',
       jenis_kelamin: 'Laki-laki',
       dapukan: [],
+      status_dapukan: [],
       card_id: '',
     })
     setIsModalOpen(true)
@@ -338,6 +347,7 @@ export default function AdminPengurusPage() {
       kelompok: item.kelompok || 'GONJEN 1',
       jenis_kelamin: item.jenis_kelamin || 'Laki-laki',
       dapukan: item.dapukan || [],
+      status_dapukan: item.status_dapukan || [],
       card_id: item.card_id || '',
     })
     setIsModalOpen(true)
@@ -359,11 +369,18 @@ export default function AdminPengurusPage() {
     return sortedPengurusList.filter((g) => {
       const matchKelompok =
         selectedKelompok === 'Semua Kelompok' || g.kelompok === selectedKelompok
+      const matchStatusDapukan =
+        selectedStatusDapukan === 'Semua Status Dapukan' ||
+        (Array.isArray(g.status_dapukan) && g.status_dapukan.includes(selectedStatusDapukan))
       const matchSearch =
         g.nama_pengurus.toLowerCase().includes(searchQuery.toLowerCase())
-      return matchKelompok && matchSearch
+      return matchKelompok && matchStatusDapukan && matchSearch
     })
-  }, [sortedPengurusList, selectedKelompok, searchQuery])
+  }, [sortedPengurusList, selectedKelompok, selectedStatusDapukan, searchQuery])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, selectedKelompok, selectedStatusDapukan])
 
   // Ringkasan Statistik Dinamis
   const totalPengurus = filteredPengurus.length
@@ -500,6 +517,18 @@ export default function AdminPengurusPage() {
               </option>
             ))}
           </select>
+          <select
+            value={selectedStatusDapukan}
+            onChange={(e) => setSelectedStatusDapukan(e.target.value)}
+            className="w-full sm:w-auto px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#128243] cursor-pointer"
+          >
+            <option value="Semua Status Dapukan">Semua Status Dapukan</option>
+            {STATUS_DAPUKAN_OPTIONS.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -513,6 +542,7 @@ export default function AdminPengurusPage() {
                 <th className="py-3.5 px-4">Kelompok</th>
                 <th className="py-3.5 px-4">Jenis Kelamin</th>
                 <th className="py-3.5 px-4">Dapukan</th>
+                <th className="py-3.5 px-4">Status Dapukan</th>
                 <th className="py-3.5 px-4 text-center">Card ID / RFID</th>
                 <th className="py-3.5 px-4 text-center">Aksi</th>
               </tr>
@@ -520,18 +550,18 @@ export default function AdminPengurusPage() {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs sm:text-sm">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400 font-medium">
+                  <td colSpan={7} className="py-12 text-center text-slate-400 font-medium">
                     Memuat data pengurus...
                   </td>
                 </tr>
-              ) : filteredPengurus.length === 0 ? (
+              ) : paginatedPengurus.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400 font-medium">
+                  <td colSpan={7} className="py-12 text-center text-slate-400 font-medium">
                     Data tidak ditemukan.
                   </td>
                 </tr>
               ) : (
-                filteredPengurus.map((item) => (
+                paginatedPengurus.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                     <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">{item.nama_pengurus}</td>
                     <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-medium">
@@ -553,6 +583,22 @@ export default function AdminPengurusPage() {
                               className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-[#128243] dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 rounded-md text-[11px] font-semibold"
                             >
                               {d}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-slate-400 text-xs">-</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <div className="flex flex-wrap gap-1">
+                        {Array.isArray(item.status_dapukan) && item.status_dapukan.length > 0 ? (
+                          item.status_dapukan.map((s) => (
+                            <span
+                              key={s}
+                              className="px-2 py-0.5 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 rounded-md text-[11px] font-semibold"
+                            >
+                              {s}
                             </span>
                           ))
                         ) : (
@@ -702,6 +748,33 @@ export default function AdminPengurusPage() {
                           className="rounded border-slate-300 text-[#128243] focus:ring-[#128243]"
                         />
                         <span>{dapukanName}</span>
+                      </label>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-2">Status Dapukan (Bisa pilih lebih dari satu)</label>
+                <div className="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+                  {STATUS_DAPUKAN_OPTIONS.map((statusName) => {
+                    const isSelected = formData.status_dapukan?.includes(statusName)
+                    return (
+                      <label key={statusName} className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            const currentStatus = formData.status_dapukan || []
+                            if (e.target.checked) {
+                              setFormData({ ...formData, status_dapukan: [...currentStatus, statusName] })
+                            } else {
+                              setFormData({ ...formData, status_dapukan: currentStatus.filter((s) => s !== statusName) })
+                            }
+                          }}
+                          className="rounded border-slate-300 text-[#128243] focus:ring-[#128243]"
+                        />
+                        <span>{statusName}</span>
                       </label>
                     )
                   })}
