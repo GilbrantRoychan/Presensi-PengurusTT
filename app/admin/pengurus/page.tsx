@@ -98,6 +98,10 @@ export default function AdminPengurusPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedKelompok, setSelectedKelompok] = useState('Semua Kelompok')
 
+  // State Pagination
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
+
   // State Modal CRUD
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isImportModalOpen, setIsImportModalOpen] = useState(false)
@@ -365,6 +369,18 @@ export default function AdminPengurusPage() {
     })
   }, [sortedPengurusList, selectedKelompok, searchQuery])
 
+  // Reset ke halaman 1 saat filter atau pencarian berubah
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, selectedKelompok])
+
+  // Data Terpaginasi
+  const totalPages = Math.ceil(filteredPengurus.length / itemsPerPage) || 1
+  const paginatedPengurus = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage
+    return filteredPengurus.slice(start, start + itemsPerPage)
+  }, [filteredPengurus, currentPage])
+
   // Ringkasan Statistik Dinamis
   const totalPengurus = filteredPengurus.length
   const totalLaki = filteredPengurus.filter((g) =>
@@ -524,14 +540,14 @@ export default function AdminPengurusPage() {
                     Memuat data pengurus...
                   </td>
                 </tr>
-              ) : filteredPengurus.length === 0 ? (
+              ) : paginatedPengurus.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-slate-400 font-medium">
                     Data tidak ditemukan.
                   </td>
                 </tr>
               ) : (
-                filteredPengurus.map((item) => (
+                paginatedPengurus.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                     <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">{item.nama_pengurus}</td>
                     <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-medium">
@@ -593,6 +609,46 @@ export default function AdminPengurusPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Navigasi Pagination */}
+        {!loading && filteredPengurus.length > 0 && (
+          <div className="px-4 py-3.5 bg-slate-50/80 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div className="text-slate-500 dark:text-slate-400 font-medium">
+              Menampilkan <span className="font-bold text-slate-700 dark:text-slate-200">{Math.min((currentPage - 1) * itemsPerPage + 1, filteredPengurus.length)}</span> - <span className="font-bold text-slate-700 dark:text-slate-200">{Math.min(currentPage * itemsPerPage, filteredPengurus.length)}</span> dari <span className="font-bold text-slate-700 dark:text-slate-200">{filteredPengurus.length}</span> data
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+              >
+                Sebelumnya
+              </button>
+              <div className="flex items-center gap-1 font-bold text-slate-700 dark:text-slate-200">
+                <span>Hal</span>
+                <select
+                  value={currentPage}
+                  onChange={(e) => setCurrentPage(Number(e.target.value))}
+                  className="px-2 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#128243] cursor-pointer"
+                >
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+                <span>/ {totalPages}</span>
+              </div>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+              >
+                Berikutnya
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal CRUD Manual (Tambah / Edit) */}
