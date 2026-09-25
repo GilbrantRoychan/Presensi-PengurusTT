@@ -28,6 +28,7 @@ export default function AdminRekapEditPage() {
   const [selectedKelompok, setSelectedKelompok] = useState<string>('Semua')
   const [selectedJK, setSelectedJK] = useState<string>('Semua')
   const [selectedStatus, setSelectedStatus] = useState<string>('Semua')
+  const [selectedStatusDapukan, setSelectedStatusDapukan] = useState<string>('Semua')
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [savingId, setSavingId] = useState<string | null>(null)
@@ -223,12 +224,15 @@ export default function AdminRekapEditPage() {
       const matchJK = selectedJK === 'Semua' || g.jenis_kelamin === selectedJK
       const currentStatus = savedPresensiMap[g.id]?.status || 'Alpa / Belum Presensi'
       const matchStatus = selectedStatus === 'Semua' || currentStatus === selectedStatus
+      const matchStatusDapukan =
+        selectedStatusDapukan === 'Semua' ||
+        (Array.isArray(g.status_dapukan) && g.status_dapukan.includes(selectedStatusDapukan))
       const matchSearch =
         g.nama_pengurus.toLowerCase().includes(searchQuery.toLowerCase())
 
-      return matchKelompok && matchJK && matchStatus && matchSearch
+      return matchKelompok && matchJK && matchStatus && matchStatusDapukan && matchSearch
     })
-  }, [pengurusList, selectedKelompok, selectedJK, selectedStatus, searchQuery, savedPresensiMap])
+  }, [pengurusList, selectedKelompok, selectedJK, selectedStatus, selectedStatusDapukan, searchQuery, savedPresensiMap])
 
   const { totalPengurus, totalHadir, totalIzin, totalAlpa, persentaseHadir } = useMemo(() => {
     let hadir = 0
@@ -334,7 +338,7 @@ export default function AdminRekapEditPage() {
         </div>
 
         {/* Filter Dropdowns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2">
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Pilih Acara</label>
             <select
@@ -363,6 +367,19 @@ export default function AdminRekapEditPage() {
               <option value="GONJEN 2">GONJEN 2</option>
               <option value="KEMBARAN">KEMBARAN</option>
               <option value="SEMBUNG">SEMBUNG</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Filter Status Dapukan</label>
+            <select
+              value={selectedStatusDapukan}
+              onChange={(e) => setSelectedStatusDapukan(e.target.value)}
+              className="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm outline-none focus:ring-2 focus:ring-[#128243] cursor-pointer"
+            >
+              <option value="Semua">Semua Status Dapukan</option>
+              <option value="Kelompok">Kelompok</option>
+              <option value="Desa">Desa</option>
             </select>
           </div>
 
