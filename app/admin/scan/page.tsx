@@ -73,7 +73,7 @@ export default function AdminScanPage() {
     setToast({ show: true, text, type })
     setTimeout(() => {
       setToast({ show: false, text: '', type: 'success' })
-    }, 3200)
+    }, 1700)
   }
 
   // Card Reader Listener useEffect
