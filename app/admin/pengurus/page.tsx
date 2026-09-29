@@ -696,8 +696,8 @@ export default function AdminPengurusPage() {
 
       {/* Modal CRUD Manual (Tambah / Edit) */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl max-w-md w-full p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain bg-slate-900/50 p-3 backdrop-blur-xs sm:items-center sm:p-4">
+          <div className="my-2 max-h-[calc(100dvh-1.5rem)] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xl sm:my-0 sm:max-h-[calc(100dvh-2rem)] sm:p-6">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 {editingData ? 'Edit Data Pengurus' : 'Tambah Pengurus Manual'}
