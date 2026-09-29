@@ -17,6 +17,7 @@ interface Pengurus {
   nama_pengurus: string
   kelompok: string
   jenis_kelamin?: string
+  status_dapukan?: string[]
   jabatan?: string
 }
 
@@ -149,7 +150,15 @@ export default function QRCodePage() {
   const getCardDetails = (pengurus: Pengurus) => {
     const jabatanPanitia = pengurus.jabatan || panitiaJabatan.get(pengurus.id)
     if (jabatanPanitia) return jabatanPanitia.replace(/\s+#[0-9a-f]{8}$/i, '')
-    return `${pengurus.jenis_kelamin ? `${pengurus.jenis_kelamin}` : '-'}`.trim()
+    if (pengurus.status_dapukan?.includes('Desa')) return 'Pengurus Desa'
+    if (pengurus.status_dapukan?.includes('Kelompok')) {
+      const kelompok = (pengurus.kelompok || '')
+        .trim()
+        .toLowerCase()
+        .replace(/(^|\s)\S/g, (character) => character.toUpperCase())
+      return kelompok ? `Pengurus Kelompok ${kelompok}` : 'Pengurus Kelompok'
+    }
+    return '-'
   }
 
   const isManualPanitia = (generusId: string) => manualPanitia.some((panitia) => panitia.id === generusId)
@@ -450,7 +459,7 @@ export default function QRCodePage() {
                                 <p className="line-clamp-2 text-[clamp(8px,2.4vw,14px)] font-extrabold uppercase leading-tight text-black">
                                   {g.nama_pengurus || g.nama}
                                 </p>
-                                <p className="truncate text-[clamp(6px,1.6vw,10px)] font-semibold leading-none text-gray-500">
+                                <p className="line-clamp-2 text-[clamp(6px,1.6vw,10px)] font-semibold leading-tight text-gray-500">
                                   {getCardDetails(g)}
                                 </p>
                               </div>

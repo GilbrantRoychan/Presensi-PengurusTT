@@ -41,6 +41,10 @@ const DAPUKAN_OPTIONS = [
   'Penerobos kelompok',
   'Penerobos Desa',
   'Mubaligh',
+  'PC',
+  "PAC",
+  'Senkom',
+  'ASAD'
 ]
 
 const STATUS_DAPUKAN_OPTIONS = ['Kelompok', 'Desa']
