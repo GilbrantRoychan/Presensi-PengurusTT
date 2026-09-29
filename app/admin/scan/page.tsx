@@ -20,6 +20,7 @@ interface Pengurus {
   nama_pengurus: string
   kelompok: string
   jenis_kelamin: 'Laki-laki' | 'Perempuan'
+  status_dapukan?: string[] | null
   qr_code_id?: string
   card_id?: string
 }
@@ -53,6 +54,8 @@ export default function AdminScanPage() {
     text: '',
     type: 'success'
   })
+  const [successPopup, setSuccessPopup] = useState<Pick<Pengurus, 'nama_pengurus' | 'kelompok' | 'status_dapukan'> | null>(null)
+  const successPopupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Ref penanda cegah pindaian berulang beruntun (Debounce)
   const isProcessing = useRef(false)
@@ -68,12 +71,33 @@ export default function AdminScanPage() {
     loadData()
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (successPopupTimerRef.current) clearTimeout(successPopupTimerRef.current)
+    }
+  }, [])
+
   // Fungsi Tampil Toast Notification Singkat
   const showToast = (text: string, type: 'success' | 'error' | 'warning') => {
     setToast({ show: true, text, type })
     setTimeout(() => {
       setToast({ show: false, text: '', type: 'success' })
     }, 1700)
+  }
+
+  const closeSuccessPopup = () => {
+    if (successPopupTimerRef.current) clearTimeout(successPopupTimerRef.current)
+    successPopupTimerRef.current = null
+    setSuccessPopup(null)
+  }
+
+  const showSuccessPopup = (pengurus: Pick<Pengurus, 'nama_pengurus' | 'kelompok' | 'status_dapukan'>) => {
+    if (successPopupTimerRef.current) clearTimeout(successPopupTimerRef.current)
+    setSuccessPopup(pengurus)
+    successPopupTimerRef.current = setTimeout(() => {
+      setSuccessPopup(null)
+      successPopupTimerRef.current = null
+    }, 2000)
   }
 
   // Card Reader Listener useEffect
@@ -233,7 +257,7 @@ export default function AdminScanPage() {
         const cleanedCardId = rawCode.trim()
         const { data } = await supabase
           .from('pengurus')
-          .select('id, nama_pengurus, kelompok, jenis_kelamin, qr_code_id, card_id')
+          .select('id, nama_pengurus, kelompok, jenis_kelamin, status_dapukan, qr_code_id, card_id')
           .eq('card_id', cleanedCardId)
           .maybeSingle()
 
@@ -243,11 +267,11 @@ export default function AdminScanPage() {
         const [byId, byQr] = await Promise.all([
           supabase
             .from('pengurus')
-            .select('id, nama_pengurus, kelompok, jenis_kelamin, qr_code_id, card_id')
+            .select('id, nama_pengurus, kelompok, jenis_kelamin, status_dapukan, qr_code_id, card_id')
             .in('id', candidates),
           supabase
             .from('pengurus')
-            .select('id, nama_pengurus, kelompok, jenis_kelamin, qr_code_id, card_id')
+            .select('id, nama_pengurus, kelompok, jenis_kelamin, status_dapukan, qr_code_id, card_id')
             .in('qr_code_id', candidates)
         ])
 
@@ -264,7 +288,7 @@ export default function AdminScanPage() {
         return
       }
 
-      await submitPresensi(matchedPengurus.id, matchedPengurus.nama_pengurus, metode)
+      await submitPresensi(matchedPengurus, metode)
     } finally {
       setTimeout(() => {
         isProcessing.current = false
@@ -321,22 +345,25 @@ export default function AdminScanPage() {
     }
   }
 
-  async function submitPresensi(generusId: string, nama: string, metode: 'QR Scan' | 'Card Scan' | 'Manual Admin') {
+  async function submitPresensi(
+    pengurus: Pick<Pengurus, 'id' | 'nama_pengurus' | 'kelompok' | 'status_dapukan'>,
+    metode: 'QR Scan' | 'Card Scan' | 'Manual Admin'
+  ) {
     const { data: existing } = await supabase
       .from('presensi')
       .select('id')
       .eq('acara_id', selectedAcara)
-      .eq('pengurus_id', generusId)
+      .eq('pengurus_id', pengurus.id)
       .maybeSingle()
 
     if (existing) {
-      showToast(`${nama} sudah tercatat hadir sebelumnya!`, 'error')
+      showToast(`${pengurus.nama_pengurus} sudah tercatat hadir sebelumnya!`, 'error')
       resetForm()
       return
     }
 
     const { error } = await supabase.from('presensi').insert({
-      pengurus_id: generusId,
+      pengurus_id: pengurus.id,
       acara_id: selectedAcara,
       status: 'Hadir',
       metode: metode
@@ -345,7 +372,11 @@ export default function AdminScanPage() {
     if (error) {
       showToast(`Gagal mencatat presensi: ${error.message}`, 'error')
     } else {
-      showToast(`Berhasil! ${nama} tercatat Hadir (${metode}).`, 'success')
+      if (metode === 'QR Scan' || metode === 'Card Scan') {
+        showSuccessPopup(pengurus)
+      } else {
+        showToast(`Berhasil! ${pengurus.nama_pengurus} tercatat Hadir (${metode}).`, 'success')
+      }
       resetForm()
     }
   }
@@ -355,7 +386,7 @@ export default function AdminScanPage() {
     e.preventDefault()
     if (!selectedAcara || !selectedGenerusId) return
     const gen = pengurusList.find((g) => g.id === selectedGenerusId)
-    if (gen) await submitPresensi(gen.id, gen.nama_pengurus, 'Manual Admin')
+    if (gen) await submitPresensi(gen, 'Manual Admin')
   }
 
   // Submit Manual Data Baru
@@ -382,7 +413,7 @@ export default function AdminScanPage() {
     }
 
     await fetchPengurus()
-    await submitPresensi(newGen.id, newGen.nama_pengurus, 'Manual Admin')
+    await submitPresensi(newGen, 'Manual Admin')
   }
 
   return (
@@ -411,6 +442,73 @@ export default function AdminScanPage() {
             <button onClick={() => setToast({ ...toast, show: false })} className="p-1 hover:bg-white/20 rounded-lg cursor-pointer">
               <X className="w-4 h-4" />
             </button>
+          </div>
+        </div>
+      )}
+
+      {successPopup && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-xs"
+          onClick={closeSuccessPopup}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="scan-success-title"
+            className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-5 text-slate-900 shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:text-white sm:p-6"
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') closeSuccessPopup()
+            }}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-[#128243] dark:bg-emerald-950/50 dark:text-emerald-400">
+                  <CheckCircle2 className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase text-[#128243] dark:text-emerald-400">Presensi Berhasil</p>
+                  <h2 id="scan-success-title" className="text-lg font-bold">Tercatat Hadir</h2>
+                </div>
+              </div>
+              <button
+                type="button"
+                autoFocus
+                onClick={closeSuccessPopup}
+                aria-label="Tutup notifikasi presensi"
+                className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <dl className="mt-5 divide-y divide-slate-100 rounded-lg border border-slate-200 dark:divide-slate-800 dark:border-slate-700">
+              <div className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3 px-3 py-3 text-sm">
+                <dt className="font-medium text-slate-500 dark:text-slate-400">Nama</dt>
+                <dd className="break-words font-semibold">{successPopup.nama_pengurus}</dd>
+              </div>
+              <div className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3 px-3 py-3 text-sm">
+                <dt className="font-medium text-slate-500 dark:text-slate-400">Kelompok</dt>
+                <dd className="break-words font-semibold">{successPopup.kelompok || '-'}</dd>
+              </div>
+              <div className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3 px-3 py-3 text-sm">
+                <dt className="font-medium text-slate-500 dark:text-slate-400">Status Dapukan</dt>
+                <dd className="flex flex-wrap gap-1.5">
+                  {successPopup.status_dapukan?.length ? (
+                    successPopup.status_dapukan.map((status) => (
+                      <span
+                        key={status}
+                        className="rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:border-blue-800/60 dark:bg-blue-950/40 dark:text-blue-300"
+                      >
+                        {status}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-slate-400">-</span>
+                  )}
+                </dd>
+              </div>
+            </dl>
           </div>
         </div>
       )}
